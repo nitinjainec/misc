@@ -1,18 +1,25 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+/* Program to print binary tree in Tree format as follows:
+** Following is the output of the program
+** Pretty Print:
+
+                               11
+               12                              13
+       14              15              16              17
+   18      19      20      21      22      23      24      25
+ 26  27  28  29  30  31  32  33  34  35  36  37  38  39  40  41
+**
+*/
+
 struct Node {
-  Node (int data)
-    : data (data)
-    , left (NULL)
-    , right (NULL)
-  {}
+  Node (int data) : data (data) , left (NULL) , right (NULL) {}
   int data;
-  Node *left;
-  Node *right;
+  Node *left, *right;
 };
 
-void levelPrint (Node *root) {
+void levelOrderPrint (Node *root) {
   queue<Node *> q;
   q.push (root);
   q.push (NULL);
@@ -20,9 +27,8 @@ void levelPrint (Node *root) {
     Node *node = q.front (); q.pop ();
     if (node == NULL) {
       cout << "\n";
-      if (!q.empty ()) {
+      if (!q.empty ())
 	q.push (NULL);
-      }
     }
     else {
       cout << node->data << " ";
@@ -32,21 +38,32 @@ void levelPrint (Node *root) {
   }
 }
 
-pair<int, int> maxSpace (Node *root, int sp = 0) {
-  if (root == NULL) return make_pair (sp, sp);
-  auto l = maxSpace (root->left, sp - 1);
-  auto r = maxSpace (root->right, sp + 1);
+// return x ^ n
+int power (int x, int n) {
+  if (n <= 0) return 1;
+  int t = power (x, n/2);
+  if (n%2 == 0) return t * t;
+  return t * t * x;
+}
 
-  //cout << root->data << " " << l.first << " " << r.second << "\n";
+// return max left and right levels
+pair<int, int> maxLevels (Node *root, int sp = 0) {
+  if (root == NULL) return make_pair (sp, sp);
+  auto l = maxLevels (root->left, sp - 1);
+  auto r = maxLevels (root->right, sp + 1);
   return make_pair (min (l.first, r.first), max(l.second, r.second));
 }
 
 int maxRightSpace (Node *root) {
-  return (maxSpace (root, 0).second -1 ) * 2 * 4;
+  int level = maxLevels (root, 0).second - 2;
+  if (level < 0) return 2;
+  return power (2, level) * 4;
 }
 
 int maxLeftSpace (Node *root) {
-  return (abs(maxSpace (root, 0).first) -1 ) * 2 * 4;
+  int level = abs(maxLevels (root, 0).second) - 2;
+  if (level < 0) return 2;
+  return power (2, level) * 4;
 }
 
 void prettyPrint (Node *root) {
@@ -55,12 +72,11 @@ void prettyPrint (Node *root) {
   int maxL = maxLeftSpace (root);
   int maxR = maxRightSpace (root);
   int maxs = max (maxL, maxR);
-  cout << maxL << " " << maxR << " " << maxs << "\n";
   queue <pair <Node *, int> > q; // Node *, space pair;
   q.push (make_pair (root, maxs));
   q.push (pair<Node*, int> (NULL, -1)); // delimeter
-
-  int ch_count = 0;
+  int ch_count = 1;
+  
   while (!q.empty ()) {
     auto p = q.front (); q.pop ();
     Node *node = p.first;
@@ -68,7 +84,7 @@ void prettyPrint (Node *root) {
 
     if (node == NULL && space == -1) {
       cout << "\n";
-      ch_count = 0;
+      ch_count = 1;
       if (!q.empty ()) q.push (p);
     }
     else {
@@ -83,23 +99,18 @@ void prettyPrint (Node *root) {
     }
   }
 }
-// 
-// 18 26 L 18 27 R 19 28 L 19 29 R 20 30 L 20 31 R 21 32 L 21 33 R 22 34 L 22 35 R 23 36 L 23 37 R 24 38 L 24 39 R 25 40 L 25 41 R \
 
 int main () {
-#if 1
   string data =
     "\
      11 12 L 11 13 R							\
      12 14 L 12 15 R 13 16 L 13 17 R					\
      14 18 L 14 19 R 15 20 L 15 21 R 16 22 L 16 23 R 17 24 L 17 25 R	\
+     18 26 L 18 27 R 19 28 L 19 29 R 20 30 L 20 31 R 21 32 L 21 33 R 22 34 L 22 35 R 23 36 L 23 37 R 24 38 L 24 39 R 25 40 L 25 41 R \
      -1 -1 L								\
     ";
   stringstream s (data);
   istream &is (s);
-#else
-  istream &is (cin);
-#endif
   
   int n, p;
   char r;
@@ -114,7 +125,7 @@ int main () {
     is >> p >> n >> r;
   } while (n > 0 && p > 0 && (r == 'L' || r == 'R'));
 
-  levelPrint (root);
+  levelOrderPrint (root);
   cout << "\n";
   prettyPrint (root);
 }
